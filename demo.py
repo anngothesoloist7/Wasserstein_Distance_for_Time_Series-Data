@@ -1,2 +1,2 @@
 print("hihi")
-print("CS Vinuni")
+print("CS Vinuni no no no")
