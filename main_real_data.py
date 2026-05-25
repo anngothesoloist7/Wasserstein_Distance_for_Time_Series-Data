@@ -299,7 +299,7 @@ def main():
     # Figure 2a: MK-means historical coloring
     fig2a = plot_historical_coloring(
         prices, mk_labels, h1, h2,
-        dates=pd.to_datetime(dates[:-1]),
+        dates=pd.to_datetime(dates[:-1], utc=True),
         crisis_labels=crisis_labels,
         title="Regime changes (MK-means), centroids = 2",
         save_path=os.path.join(output_dir, "figure2a_mk_means_historical.png")
@@ -310,7 +310,7 @@ def main():
     # Figure 2b: WK-means historical coloring
     fig2b = plot_historical_coloring(
         prices, wk_labels, h1, h2,
-        dates=pd.to_datetime(dates[:-1]),
+        dates=pd.to_datetime(dates[:-1], utc=True),
         crisis_labels=crisis_labels,
         title="Regime changes (WK-means), centroids = 2",
         save_path=os.path.join(output_dir, "figure2b_wk_means_historical.png")
@@ -322,7 +322,7 @@ def main():
     print("\n   Creating animation (this may take a minute)...")
     anim = create_regime_animation(
         prices, wk_labels, h1, h2,
-        dates=pd.to_datetime(dates[:-1]),
+        dates=pd.to_datetime(dates[:-1], utc=True),
         title="Wasserstein K-Means: Market Regime Detection",
         fps=30,
         duration_seconds=12,
