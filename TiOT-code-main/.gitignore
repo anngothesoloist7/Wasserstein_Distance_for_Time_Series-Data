@@ -1,0 +1,101 @@
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# ============================================================
+# Data files (large / heavy)
+# ============================================================
+# Raw CSV data
+*.csv
+
+# PyTorch tensors & checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Large text data files
+*.txt
+
+# NumPy arrays
+*.npy
+*.npz
+
+# HDF5 / Pickle
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# Parquet / Feather
+*.parquet
+*.feather
+
+# Compressed archives
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.gz
+*.rar
+*.7z
+
+# ============================================================
+# Experimental outputs & logs
+# ============================================================
+Experimental_outputs/
+logs/
+*.log
+*.out
+
+# ============================================================
+# IDE & OS files
+# ============================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================
+# Misc
+# ============================================================
+*.swp
+*.swo
+*~
