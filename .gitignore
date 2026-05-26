@@ -1,0 +1,71 @@
+# ========================
+# Data files (heavy)
+# ========================
+data/
+*.pt
+*.npy
+*.npz
+*.csv
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# ========================
+# Experiment logs & results
+# ========================
+experiments_logs/
+*.log
+*.xlsx
+*.xls
+
+# ========================
+# Python cache
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ========================
+# Virtual environments
+# ========================
+venv/
+env/
+.env/
+.venv/
+
+# ========================
+# Jupyter Notebooks
+# ========================
+.ipynb_checkpoints/
+*.ipynb
+
+# ========================
+# MacOS system files
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ========================
+# Model checkpoints (nặng)
+# ========================
+*.pth
+checkpoints/
+
+# ========================
+# Misc
+# ========================
+*.zip
+*.tar.gz
+*.rar
