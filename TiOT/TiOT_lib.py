@@ -1,5 +1,7 @@
+import os
+import sys
+
 import numpy as np
-import ot
 from scipy.optimize import linprog
 from scipy.sparse import csr_matrix, hstack, vstack, eye, kron
 np.seterr(divide='ignore', invalid='ignore', over='ignore')
@@ -7,69 +9,24 @@ import time
 import warnings
 from scipy.stats import norm
 
-def normalization(x,y):
-    """
-    Normalize input time series by formular
-    x = (x - mean(x)) / std(x)
+# Make the repository-root shared package importable regardless of the working
+# directory the scripts are launched from (e.g. ``python kfold_kNN_Exp.py`` run
+# inside the TiOT/ folder).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
-    Parameters
-        x (ndarray): 1D array of shape (n,)
-        y (ndarray): 1D array of shape (m,)
+# Shared, reusable primitives (identical implementations, factored out so both
+# this project and the Wasserstein K-Means project share one source of truth).
+from ot_common import (
+    normalization,
+    spat_temp_cost,
+    costmatrix0,
+    costmatrix1,
+    emd2_distance,
+)
 
-    Returns:
-        (tuple): normalized x, normalized y
-    """
 
-    return (x - np.mean(x)) / np.std(x), (y - np.mean(y)) / np.std(y)
- 
-
-def costmatrix0(x ,y, w) -> np.ndarray : 
-    """
-    Cost matrix define in the TAOT's way: C.
-
-    Parameters:
-        x (ndarray): 1D array of shape (n,)
-        y (ndarray): 1D array of shape (m,)
-        w (float)  : parameter to calculate C_ij
- 
-    Returns:
-        ndarray: 2D array of shape (n,m)
-    """
-
-    spatial_cost, temporal_cost = spat_temp_cost(x,y)
-    C = spatial_cost + w * temporal_cost
-    C = C / np.median(C)
-    return C  
-
-def costmatrix1(x,y, w) -> np.ndarray :
-    """
-    Cost matrix define in the TiOT's way: C.
-
-    Parameters:
-        x (ndarray): 1D array of shape (n,)
-        y (ndarray): 1D array of shape (m,)
-        w (float)  : parameter to calculate C_ij
-
-    Returns:
-        ndarray: 2D array of shape (n,m)
-    """
-    x,y = normalization(x,y)
-    spatial_cost, temporal_cost = spat_temp_cost(x,y)
-    return w * spatial_cost + (1-w)*temporal_cost
-
-def spat_temp_cost(x,y, eps = 1):
-    n, m = len(x), len(y)
-    t,s = normalization(np.arange(1, n+1), np.arange(1, m+1))
-    if x.ndim == 1 and y.ndim == 1:
-        spatial_cost =  (x[:, None] - y[None, :])**2 / eps
-    else:
-        x_norm2 = np.sum(x**2, axis=1)[:, None]
-        y_norm2 = np.sum(y**2, axis=1)[None, :]
-        spatial_cost = (x_norm2 + y_norm2 - 2 * x @ y.T) / eps
-    temporal_cost =  (t[:, None] - s[None, :])**2 / eps
-    return spatial_cost, temporal_cost
- 
- 
 def TiOT(x, y, a=None, b=None, detail_mode=False, verbose=False, timing=False):
     """
     Solve the Time-integrated Optimal Transport (TiOT) problem between two discrete distributions.
@@ -270,9 +227,7 @@ def TAOT(x, y, a = None, b = None, w = 0.5, costmatrix = costmatrix1, verbose = 
     M = costmatrix(x, y, w)
     if a == None: a = np.ones(n) / n
     if b == None: b = np.ones(m) / m
-    result = ot.lp.emd2(a,b,M, numItermax = 10**8, return_matrix=True) 
-    distance = result[0]
-    transport_plan = result[1]['G']
+    distance, transport_plan = emd2_distance(a, b, M, num_iter_max=10**8)
     end = time.perf_counter()
     if timing == True:
         return distance, transport_plan, end -start
