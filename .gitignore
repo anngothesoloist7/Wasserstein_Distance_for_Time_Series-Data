@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Data files (large)
+*.pt
+*.pkl
+*.h5
+*.hdf5
+*.npy
+*.npz
+
+# Model checkpoints / outputs
+*.ckpt
+experiments_logs/
+Experimental_outputs/
+figures/
+
+# Logs
+*.log
+logs/
+
+# DS_Store (macOS)
+.DS_Store
+**/.DS_Store
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Zip archives
+*.zip
+
+# Large raw datasets
+data/TiOT/MITBIH/
+TiOT/time_series_kNN/MITBIH/

@@ -1,0 +1,9 @@
+method,accuracy,f1_macro,notes
+kNN-1 (Euclidean),0.88,0.8681318681318682,original train/test split
+kNN-3 (Euclidean),0.9,0.8885918003565062,original train/test split
+kNN-5 (Euclidean),0.9,0.8885918003565062,original train/test split
+SVM (RBF),0.87,0.8561787808385883,original train/test split
+SVM (Linear),0.77,0.7593890574327858,original train/test split
+Logistic Regression,0.84,0.830220713073005,original train/test split
+Ridge Classifier,0.8,0.7933030177759405,original train/test split
+Random Forest,0.81,0.7798632835129184,original train/test split

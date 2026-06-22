@@ -1,0 +1,10 @@
+method,accuracy,f1_macro,notes,method_group
+kNN-1 (Euclidean),0.88,0.8681318681318682,original train/test split,sklearn
+kNN-3 (Euclidean),0.9,0.8885918003565062,original train/test split,sklearn
+kNN-5 (Euclidean),0.9,0.8885918003565062,original train/test split,sklearn
+SVM (RBF),0.87,0.8561787808385883,original train/test split,sklearn
+SVM (Linear),0.77,0.7593890574327858,original train/test split,sklearn
+Logistic Regression,0.84,0.830220713073005,original train/test split,sklearn
+Ridge Classifier,0.8,0.7933030177759405,original train/test split,sklearn
+Random Forest,0.81,0.7798632835129184,original train/test split,sklearn
+ECGTransForm,0.86,0.8417005879692447,"loaded from checkpoint; original train/test split (80 train, 20 val, 100 test)",ECGTransForm
