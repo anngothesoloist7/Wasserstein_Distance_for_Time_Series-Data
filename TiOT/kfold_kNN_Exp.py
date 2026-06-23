@@ -4,11 +4,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import TiOT_lib
 import os
+import sys
+from pathlib import Path
 from sklearn.neighbors import KNeighborsClassifier
 import multiprocessing
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 from sklearn.model_selection import KFold
+
+_THIS_DIR = Path(__file__).resolve().parent
 
 eps_global = 0.01
 w_global = 10
@@ -22,8 +26,8 @@ def oriTAOT(X1, X2):
     return TiOT_lib.eTAOT(X1,X2, w = w_global, eps = eps_global, costmatrix=TiOT_lib.costmatrix0)[0]
 
 def process_data(dataset_name):
-    train_file = os.path.join("time_series_kNN", dataset_name, dataset_name + "_TRAIN.txt" )
-    test_file = os.path.join("time_series_kNN", dataset_name, dataset_name + "_TEST.txt")
+    train_file = str(_THIS_DIR / "time_series_kNN" / dataset_name / (dataset_name + "_TRAIN.txt"))
+    test_file  = str(_THIS_DIR / "time_series_kNN" / dataset_name / (dataset_name + "_TEST.txt"))
 
     with open(train_file, "r") as file:
         data = np.array([line.strip().split() for line in file], dtype=float)
@@ -124,11 +128,11 @@ def kNN(dataset_name, data, metric_name , eps_list , w ):
     return errors
 
 
-def experiment_kNN(dataset_name, w_TAOT, RUN = True): 
+def experiment_kNN(dataset_name, w_TAOT, RUN = True):
     eps_list = [0.01*i for i in range(1,11)]
-    eps_name = f" ({eps_list[0]} to {eps_list[-1]})"  
-    plot_file = os.path.join('Experimental_outputs',"kfold_kNN_data","plots", "Comparison on " + dataset_name + eps_name  + ".pdf")
-    result_file = os.path.join('Experimental_outputs',"kfold_kNN_data", "saved_results","Results on " + dataset_name + eps_name + '.csv')
+    eps_name = f" ({eps_list[0]} to {eps_list[-1]})"
+    plot_file = str(_THIS_DIR / "Experimental_outputs" / "kfold_kNN_data" / "plots" / ("Comparison on " + dataset_name + eps_name + ".pdf"))
+    result_file = str(_THIS_DIR / "Experimental_outputs" / "kfold_kNN_data" / "saved_results" / ("Results on " + dataset_name + eps_name + '.csv'))
 
     os.makedirs(os.path.dirname(result_file), exist_ok=True)
     os.makedirs(os.path.dirname(plot_file), exist_ok=True)

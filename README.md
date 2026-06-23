@@ -209,24 +209,38 @@ numpy scipy scikit-learn matplotlib pandas torch tqdm pyyaml
 
 ### Google Colab setup
 
+**Option A — clone directly in Colab (recommended for a clean environment):**
+
 ```python
-# Mount Drive
+# Install dependencies
+!pip install numpy scipy scikit-learn matplotlib pandas torch tqdm pyyaml seaborn
+
+# Clone the repo
+!git clone https://github.com/anngothesoloist7/Wasserstein_Distance_for_Time_Series-Data.git UROP_co_Hong
+
+# Run evaluation (sklearn + ECGTransForm, ~2 min on CPU)
+%cd /content/UROP_co_Hong/TiOT
+!python3 evaluate_ecg200_all_methods.py --skip-etiot
+
+# Or full run including TiOT/ETIOT (slow, 20-30 min)
+!python3 evaluate_ecg200_all_methods.py --run-etiot
+```
+
+**Option B — mount Google Drive (if repo is already saved there):**
+
+```python
 from google.colab import drive
 drive.mount('/content/drive')
 
-# Navigate to project root
-import os
-os.chdir('/content/drive/MyDrive/<path-to-project-root>')
+!pip install numpy scipy scikit-learn matplotlib pandas torch tqdm pyyaml seaborn
 
-# Install dependencies
-!pip install numpy scipy scikit-learn matplotlib pandas torch tqdm pyyaml
-
-# Run evaluation
-os.chdir('TiOT')
-!python evaluate_ecg200_all_methods.py --skip-etiot
+%cd /content/drive/MyDrive/<path-to-UROP_co_Hong>/TiOT
+!python3 evaluate_ecg200_all_methods.py --skip-etiot
 ```
 
-**Important:** Do not use hard-coded local paths like `/Users/bichphuong/...` in scripts. All paths in the evaluation scripts use relative paths via `pathlib` or `os.path` — they resolve correctly when run from inside `TiOT/`.
+**Notes:**
+- No manual `mkdir` or `PYTHONPATH` setup required — all directories are created automatically.
+- All scripts use `__file__`-based paths so they work regardless of the working directory they're invoked from.
 
 ---
 
@@ -387,17 +401,17 @@ Figures saved in `Wasserstein_Distance_for_Time_Series-Data/figures/`.
 
 ## Reproducibility Notes
 
-- **Always run evaluation scripts from inside `TiOT/`**, not from the project root.
-- ECGTransForm is imported via `sys.path.insert(0, '../ECGTransForm')` in the wrapper — this requires the standard project layout (`TiOT/` and `ECGTransForm/` as siblings).
-- ECG200 data must be at `TiOT/time_series_kNN/ECG200/ECG200_TRAIN.txt` and `ECG200_TEST.txt`.
+- All evaluation scripts use `pathlib.Path(__file__).resolve().parent`-based paths, so they work regardless of where they are called from. Running from inside `TiOT/` is conventional but not required.
+- Output directories (`TiOT/Experimental_outputs/`, `TiOT/results/`, `ECGTransForm/data/ecg200/`, `ECGTransForm/experiments_logs/`) are created automatically on first run — no manual `mkdir` needed.
+- ECGTransForm is imported via `sys.path.insert(0, ECGTRANSFORM_DIR)` in the wrapper (`ecgtransform_ecg200.py`), where `ECGTRANSFORM_DIR` is resolved relative to `__file__` — works on any machine without `PYTHONPATH` configuration.
+- ECG200 data must be at `TiOT/time_series_kNN/ECG200/ECG200_TRAIN.txt` and `ECG200_TEST.txt` (included in repo).
 - The ECG200 `.pt` files in `ECGTransForm/data/ecg200/` are auto-generated from the `.txt` files on first run.
-- If using Google Colab, maintain the project structure:
+- Project layout must be maintained (`TiOT/` and `ECGTransForm/` as siblings under the same root):
   ```
   project_root/
   ├── TiOT/
   └── ECGTransForm/
   ```
-  and `cd` into `TiOT/` before running any evaluation script.
 
 ---
 

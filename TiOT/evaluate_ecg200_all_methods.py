@@ -26,6 +26,7 @@ Color convention in bar charts:
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -33,9 +34,16 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-ETIOT_RESULT_FILE = os.path.join(
-    'Experimental_outputs', 'kfold_kNN_data', 'saved_results',
-    'Results on {dataset} (0.01 to 0.1).csv'
+_THIS_DIR = Path(__file__).resolve().parent
+
+# Ensure TiOT modules (kfold_kNN_Exp, sklearn_ecg200_classification, etc.) are importable
+# regardless of CWD — important on Colab where script is invoked from repo root.
+if str(_THIS_DIR) not in sys.path:
+    sys.path.insert(0, str(_THIS_DIR))
+
+ETIOT_RESULT_FILE = str(
+    _THIS_DIR / 'Experimental_outputs' / 'kfold_kNN_data' / 'saved_results'
+    / 'Results on {dataset} (0.01 to 0.1).csv'
 )
 
 GROUP_COLORS = {
@@ -195,7 +203,8 @@ def save_charts(df, out_dir, dataset):
 def main():
     parser = argparse.ArgumentParser(description='Compare sklearn / TiOT / ECGTransForm on ECG200')
     parser.add_argument('--dataset', '--data', default='ECG200', help='Dataset name (default: ECG200)')
-    parser.add_argument('--data-dir', default='time_series_kNN', help='Root data directory for sklearn/TiOT')
+    parser.add_argument('--data-dir', default=str(_THIS_DIR / 'time_series_kNN'),
+                        help='Root data directory for sklearn/TiOT')
     parser.add_argument('--w-taot', type=float, default=0.1,
                         help='Window parameter w for eTAOT in kfold_kNN_Exp (default: 0.1)')
     parser.add_argument('--skip-etiot',  action='store_true', help='Skip TiOT/ETIOT evaluation')
@@ -203,7 +212,8 @@ def main():
     parser.add_argument('--skip-ecgtf',  action='store_true', help='Skip ECGTransForm evaluation')
     parser.add_argument('--retrain-ecgtf', action='store_true', help='Force retrain ECGTransForm')
     parser.add_argument('--device', default='cpu', help='Device for ECGTransForm (cpu/cuda:0)')
-    parser.add_argument('--out-dir', default='results', help='Output directory for CSV and charts')
+    parser.add_argument('--out-dir', default=str(_THIS_DIR / 'results'),
+                        help='Output directory for CSV and charts')
     args = parser.parse_args()
 
     all_rows = []
