@@ -12,11 +12,31 @@ This module implements:
 5. MMD validation metrics
 """
 
+import os
+import sys
+
 import numpy as np
 from scipy import stats
 from typing import List, Tuple, Optional, Dict, Union
 from dataclasses import dataclass
 import warnings
+
+# Make the repository-root shared package importable regardless of the working
+# directory the scripts are launched from (e.g. ``python main_synthetic.py`` run
+# inside this project folder).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+# Shared, reusable primitives (identical implementations, factored out so both
+# this project and the TiOT project share one source of truth).
+from ot_common import (
+    wasserstein_distance_1d,
+    wasserstein_barycenter_1d,
+    gaussian_kernel,
+    compute_mmd_biased,
+    compute_mmd_fast,
+)
 
 
 @dataclass
@@ -69,85 +89,6 @@ def create_sliding_windows(returns: np.ndarray, h1: int, h2: int) -> List[np.nda
         i += h2 if h2 > 0 else h1
 
     return windows
-
-
-def wasserstein_distance_1d(mu: np.ndarray, nu: np.ndarray, p: int = 1) -> float:
-    """
-    Compute p-Wasserstein distance between two 1D empirical distributions.
-
-    From Equation (21) in paper:
-    W_p(μ, ν)^p = (1/N) * Σ_{i=1}^{N} |α_i - β_i|^p
-
-    where (α_i) and (β_i) are sorted atoms of μ and ν respectively.
-
-    Args:
-        mu: Atoms of first distribution (will be sorted)
-        nu: Atoms of second distribution (will be sorted)
-        p: Order of Wasserstein distance (default 1)
-
-    Returns:
-        p-Wasserstein distance
-    """
-    # Sort atoms (order statistics)
-    alpha = np.sort(mu)
-    beta = np.sort(nu)
-
-    # Handle different sizes by interpolating quantiles
-    if len(alpha) != len(beta):
-        n_points = max(len(alpha), len(beta))
-        quantiles = np.linspace(0, 1, n_points + 1)[1:]  # Exclude 0
-
-        # Compute quantile functions
-        alpha_quantiles = np.quantile(mu, quantiles)
-        beta_quantiles = np.quantile(nu, quantiles)
-    else:
-        alpha_quantiles = alpha
-        beta_quantiles = beta
-
-    # Compute Wasserstein distance
-    dist = np.mean(np.abs(alpha_quantiles - beta_quantiles) ** p) ** (1/p)
-
-    return dist
-
-
-def wasserstein_barycenter_1d(distributions: List[np.ndarray], p: int = 1) -> np.ndarray:
-    """
-    Compute Wasserstein barycenter for a set of 1D empirical distributions.
-
-    From Proposition 2.6:
-    - For p=1: a_j = Median(α_j^1, ..., α_j^M) for j = 1, ..., N
-    - For p>1: a_j = Mean(α_j^1, ..., α_j^M)
-
-    Args:
-        distributions: List of empirical distributions (arrays of atoms)
-        p: Order of Wasserstein distance (1 for median, >1 for mean)
-
-    Returns:
-        Barycenter distribution (sorted atoms)
-    """
-    if len(distributions) == 0:
-        raise ValueError("Cannot compute barycenter of empty set")
-
-    # Sort all distributions
-    sorted_dists = [np.sort(d) for d in distributions]
-
-    # Resample to common size if needed
-    n_atoms = max(len(d) for d in sorted_dists)
-
-    # Compute quantile functions at common points
-    quantiles = np.linspace(0, 1, n_atoms + 1)[1:]
-
-    quantile_values = np.zeros((len(distributions), n_atoms))
-    for i, d in enumerate(distributions):
-        quantile_values[i] = np.quantile(d, quantiles)
-
-    # Compute barycenter atoms
-    if p == 1:
-        barycenter = np.median(quantile_values, axis=0)
-    else:
-        barycenter = np.mean(quantile_values, axis=0)
-
-    return barycenter
 
 
 class WassersteinKMeans:
@@ -449,103 +390,6 @@ class MomentKMeans:
         """Fit and return cluster labels."""
         self.fit(distributions)
         return self.labels_
-
-
-def gaussian_kernel(x: np.ndarray, y: np.ndarray, sigma: float = 0.1) -> float:
-    """
-    Compute Gaussian kernel.
-
-    κ_G(x, y) = exp(-||x - y||^2 / (2σ^2))
-
-    Args:
-        x, y: Input vectors
-        sigma: Kernel bandwidth
-
-    Returns:
-        Kernel value
-    """
-    return np.exp(-np.sum((x - y) ** 2) / (2 * sigma ** 2))
-
-
-def compute_mmd_biased(
-    x: np.ndarray,
-    y: np.ndarray,
-    sigma: float = 0.1
-) -> float:
-    """
-    Compute biased empirical MMD estimate.
-
-    From Equation (53):
-    MMD_b[F, x, y] = [1/n² Σ κ(x_i, x_j) - 2/(mn) Σ κ(x_i, y_j) + 1/m² Σ κ(y_i, y_j)]^{1/2}
-
-    Args:
-        x: First sample (n x d array or 1d array)
-        y: Second sample (m x d array or 1d array)
-        sigma: Gaussian kernel bandwidth
-
-    Returns:
-        Biased MMD estimate
-    """
-    x = np.atleast_2d(x).T if x.ndim == 1 else x
-    y = np.atleast_2d(y).T if y.ndim == 1 else y
-
-    n, m = len(x), len(y)
-
-    # Compute kernel matrices
-    xx = np.sum([
-        [gaussian_kernel(x[i], x[j], sigma) for j in range(n)]
-        for i in range(n)
-    ])
-
-    yy = np.sum([
-        [gaussian_kernel(y[i], y[j], sigma) for j in range(m)]
-        for i in range(m)
-    ])
-
-    xy = np.sum([
-        [gaussian_kernel(x[i], y[j], sigma) for j in range(m)]
-        for i in range(n)
-    ])
-
-    mmd_squared = xx / (n * n) - 2 * xy / (n * m) + yy / (m * m)
-
-    return np.sqrt(max(mmd_squared, 0))
-
-
-def compute_mmd_fast(
-    x: np.ndarray,
-    y: np.ndarray,
-    sigma: float = 0.1
-) -> float:
-    """
-    Fast vectorized computation of biased MMD.
-
-    Args:
-        x: First sample (1d array - atoms of empirical distribution)
-        y: Second sample (1d array - atoms of empirical distribution)
-        sigma: Gaussian kernel bandwidth
-
-    Returns:
-        Biased MMD estimate
-    """
-    x = x.reshape(-1, 1)
-    y = y.reshape(-1, 1)
-
-    # Compute pairwise squared distances
-    xx_dist = np.sum((x[:, np.newaxis] - x) ** 2, axis=2)
-    yy_dist = np.sum((y[:, np.newaxis] - y) ** 2, axis=2)
-    xy_dist = np.sum((x[:, np.newaxis] - y) ** 2, axis=2)
-
-    # Apply Gaussian kernel
-    gamma = 1 / (2 * sigma ** 2)
-    K_xx = np.exp(-gamma * xx_dist)
-    K_yy = np.exp(-gamma * yy_dist)
-    K_xy = np.exp(-gamma * xy_dist)
-
-    n, m = len(x), len(y)
-    mmd_squared = np.sum(K_xx) / (n * n) - 2 * np.sum(K_xy) / (n * m) + np.sum(K_yy) / (m * m)
-
-    return np.sqrt(max(mmd_squared, 0))
 
 
 def compute_self_similarity(
