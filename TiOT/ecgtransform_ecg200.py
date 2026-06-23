@@ -30,6 +30,13 @@ warnings.filterwarnings("ignore", category=sklearn.exceptions.UndefinedMetricWar
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 ECGTRANSFORM_DIR = os.path.abspath(os.path.join(_THIS_DIR, '..', 'ECGTransForm'))
+
+# Insert at module load time so internal ECGTransForm imports (utils, dataloader, models)
+# resolve correctly regardless of working directory or PYTHONPATH (e.g. on Colab).
+for _p in [ECGTRANSFORM_DIR, _THIS_DIR]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 ECG200_DATA_OUT = os.path.join(ECGTRANSFORM_DIR, 'data', 'ecg200')
 ECG200_CHECKPOINT_DIR = os.path.join(ECGTRANSFORM_DIR, 'experiments_logs', 'ECGTransForm_ECG200')
 ECG200_CHECKPOINT = os.path.join(ECG200_CHECKPOINT_DIR, 'checkpoint_best.pt')

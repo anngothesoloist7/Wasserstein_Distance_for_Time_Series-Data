@@ -130,6 +130,9 @@ def experiment_kNN(dataset_name, w_TAOT, RUN = True):
     plot_file = os.path.join('Experimental_outputs',"kfold_kNN_data","plots", "Comparison on " + dataset_name + eps_name  + ".pdf")
     result_file = os.path.join('Experimental_outputs',"kfold_kNN_data", "saved_results","Results on " + dataset_name + eps_name + '.csv')
 
+    os.makedirs(os.path.dirname(result_file), exist_ok=True)
+    os.makedirs(os.path.dirname(plot_file), exist_ok=True)
+
     if RUN :
         data = process_data(dataset_name = dataset_name)
         results = {**{'eps': eps_list}}
